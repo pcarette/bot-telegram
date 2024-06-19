@@ -3,13 +3,12 @@ require("dotenv").config()
 const { TelegramClient } = require("telegram");
 const { StringSession } = require("telegram/sessions");
 const input = require("input");
-const { NewMessage } = require("telegram/events");
 
 
 
-const apiId = Number(process.env.API_ID);
-const apiHash = process.env.API_HASH;
-const stringSession = new StringSession(process.env.STRING_SESSION); // fill this later with the value from session.save()
+const apiId = Number(process.env.DEV_API_ID) || Number(process.env.API_ID);
+const apiHash = process.env.DEV_API_HASH|| process.env.API_HASH;
+const stringSession = new StringSession(process.env.DEV_STRING_SESSION) ? new StringSession(process.env.DEV_STRING_SESSION) : new StringSession(process.env.STRING_SESSION); // fill this later with the value from session.save()
 
 const getOracleClient = async () => {
   console.log("Loading oracle via  Telegram Client...");

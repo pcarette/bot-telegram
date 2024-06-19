@@ -5,14 +5,15 @@ services:
     image: mongo:latest
     container_name: mongodb-container
     ports:
-      - "27017:27017"
+      - "127.0.0.1:27017:27017"
 
   nodejs:
+    depends_on:
+      - mongodb
     build: 
       context: .
       dockerfile: Dockerfile.node
     container_name: nodejs-container
     ports:
       - "3000:3000"
-    depends_on:
-      - mongodb
+

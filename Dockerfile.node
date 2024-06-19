@@ -8,6 +8,7 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # Install dependencies
+RUN yarn global add nodemon
 RUN yarn
 
 # Copy the rest of the application code to the working directory
@@ -17,4 +18,4 @@ COPY . .
 EXPOSE 3000
 
 # Command to run the Node.js application
-CMD ["node", "main.js"]
+CMD ["yarn", "start"]

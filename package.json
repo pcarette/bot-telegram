@@ -4,11 +4,15 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "node main.js"
+    "start": "nodemon main.js"
   },
   "dependencies": {
+    "bybit-api": "^3.10.3",
     "dotenv": "^16.4.5",
     "input": "^1.0.1",
+    "mongoose": "^8.4.0",
+    "node-telegram-bot-api": "^0.66.0",
+    "nodemon": "^3.1.2",
     "telegram": "^2.20.15"
   }
 }
