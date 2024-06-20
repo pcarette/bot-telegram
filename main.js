@@ -101,7 +101,7 @@ bot.onText(/\/start/, (msg) => {
     console.log("typeof trade : ", typeof trade);
     const users = await User.find({}).lean();
 
-    console.log("users : ", users)
+    console.log("users : ", users);
 
     const clients = await Promise.all(
       users.map((user) => {
@@ -122,26 +122,49 @@ bot.onText(/\/start/, (msg) => {
 
       console.log("setLeverageResponse : ", setLeverageResponse);
       const spendableAmount = await bybitService.getSpendableAmount(client);
-      const {result : currencyResponse} = await client.getInstrumentsInfo({category : "linear", symbol: trade.currency + "USDT"})
-      console.log("currencyResponse: ", currencyResponse)
-      console.log("spendableAmount: ", spendableAmount)
+      const { result: currencyResponse } = await client.getInstrumentsInfo({
+        category: "linear",
+        symbol: trade.currency + "USDT",
+      });
+      const maxQty = currencyResponse.list[0].lotSizeFilter.maxOrderQty;
+      const minQty = currencyResponse.list[0].lotSizeFilter.minOrderQty;
+      const qtyStep = currencyResponse.list[0].lotSizeFilter.qtyStep;
+      console.log("currencyResponse: ", currencyResponse);
+      console.log("spendableAmount: ", spendableAmount);
       const orderParams = {
         category: "linear",
         symbol: trade.currency + "USDT",
         side: trade.isLong ? "Buy" : "Sell",
-        orderType : "Limit",
-        marketUnit : "quoteCoin",
-        qty : String(spendableAmount * users[index].walletProportion * users[index].leverage),
-        price : String(trade.entryPrices[0]),
+        orderType: "Limit",
+        marketUnit: "quoteCoin",
+        // qty: String(
+        //   spendableAmount *
+        //     users[index].walletProportion *
+        //     users[index].leverage
+        // ),
+        price: String(trade.entryPrices[0]),
         takeProfit: String(trade.tps[2]),
         stopLoss: String(trade.stopLoss),
+      };
+      //Define the correct qty :
+      // Calculate the maximum possible quantity based on the spendable amount and entry price
+      const maxPossibleQty = ((spendableAmount * users[index].leverage * users[index].walletProportion) / trade.entryPrices[0]);
 
-      }
-      console.log('orderParams : ', orderParams)
+      // Ensure the quantity is within the allowed range and conforms to the step size
+      let validQty = Math.min(maxPossibleQty, maxQty)
+      validQty = Math.max(validQty, minQty);
+      validQty = Math.floor(validQty / qtyStep) * qtyStep; // Adjust to be a multiple of the step size
+
+      orderParams.qty = (validQty).toFixed(4); // Ensure the quantity has the correct precision
+
+      console.log("orderParams : ", orderParams);
       const orderResponse = await client.submitOrder(orderParams);
       console.log("orderResponse : ", orderResponse);
       if (!orderResponse.retCode) {
-        bot.sendMessage(users[index].conversationId, `Order successfully placed for ${orderParams.symbol} : \nentry : ${orderParams.price}\nTP : ${orderParams.takeProfit} \nSL : ${orderParams.stopLoss}`)
+        bot.sendMessage(
+          users[index].conversationId,
+          `Order successfully placed for ${orderParams.symbol} : \nentry : ${orderParams.price}\nTP : ${orderParams.takeProfit} \nSL : ${orderParams.stopLoss}`
+        );
       }
     });
 
