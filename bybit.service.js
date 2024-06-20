@@ -28,10 +28,6 @@ const getSpendableAmount = async (client) => {
   } = await client.getWalletBalance({ accountType: "UNIFIED", coin: "USDT" });
   const tradingAccount = list[0];
   const usdtBalance = tradingAccount.coin.find(({ coin }) => coin === "USDT");
-  console.log(
-    "usdtBalance.availableToWithdraw : ",
-    usdtBalance.availableToWithdraw
-  );
   return usdtBalance.availableToWithdraw;
 };
 
@@ -46,7 +42,6 @@ const placeOrder = async (client = new RestClientV5({
     buyLeverage: "3",
     sellLeverage: "3",
   });
-  console.log("setLeverageResponse : ", setLeverageResponse)
   const orderResponse = await client.submitOrder({ category: "linear", symbol: "WAVESUSDT" });
   console.log("orderResponse : ", orderResponse)
 }
