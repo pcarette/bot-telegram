@@ -36,7 +36,7 @@ const placeOrder = async (client = new RestClientV5({
   secret: SECRET,
   testnet: true,
 })) => {
-  const setLeverageResponse = await client.setLeverage({
+  await client.setLeverage({
     category: "linear",
     symbol: "WAVESUSDT",
     buyLeverage: "3",
