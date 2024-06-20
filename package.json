@@ -4,9 +4,12 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "nodemon main.js"
+    "start": "tsc && node ./dist/main.js",
+    "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/main.ts"
   },
   "dependencies": {
+    "@types/mongoose": "^5.11.97",
+    "@types/node-telegram-bot-api": "^0.64.7",
     "bybit-api": "^3.10.3",
     "dotenv": "^16.4.5",
     "input": "^1.0.1",
@@ -14,5 +17,8 @@
     "node-telegram-bot-api": "^0.66.0",
     "nodemon": "^3.1.2",
     "telegram": "^2.20.15"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.2"
   }
 }

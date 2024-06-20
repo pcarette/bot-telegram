@@ -4,13 +4,13 @@
 //   // parse the full message and remove all emojies
 // }
 
-const splitPerLine = (message) => {
+const splitPerLine = (message : string): string[] => {
   // split the full message line by line and remove spaces/trim
   const lines = message.split("\n");
   return lines;
 };
 
-const getCurrency = (firstLine, isLong) => {
+const getCurrency = (firstLine : string, isLong : boolean): string => {
   const currency = isLong
     ? firstLine
         .split("🟢")
@@ -32,7 +32,7 @@ const getCurrency = (firstLine, isLong) => {
   return currency;
 };
 
-const getLongOrShort = (firstLine) => {
+const getLongOrShort = (firstLine : string) => {
   // check the first line and validate if LONG or SHORT and throw if not present
   if (firstLine.includes("LONG")) {
     return true;
@@ -43,13 +43,13 @@ const getLongOrShort = (firstLine) => {
   }
 };
 
-const getEntryPrices = (thirdLine) => {
+const getEntryPrices = (thirdLine : string) => {
   // get and check entry price (format);
   const entryPrices = thirdLine
     .split(":")[1]
     .replace(", ", "-")
     .split("-")
-    .map((entryPrice) => Number(entryPrice.replace(",", ".")));
+    .map((entryPrice : string) => Number(entryPrice.replace(",", ".")));
   entryPrices.map((entryPrice) => {
     if (Number.isNaN(entryPrice)) {
       throw new Error("Error while parsing entryPrices");
@@ -61,7 +61,7 @@ const getEntryPrices = (thirdLine) => {
    */
 };
 
-const getStopLoss = (lines) => {
+const getStopLoss = (lines : string[]) => {
   // recover and check stop loss validity (format)
   const stopLossIndex = lines.findIndex((line) => line.includes("SL"));
   if (stopLossIndex === -1) {
@@ -75,7 +75,7 @@ const getStopLoss = (lines) => {
   return { stopLoss, stopLossIndex };
 };
 
-const getTakeProfits = (lines, stopLossIndex) => {
+const getTakeProfits = (lines : string[], stopLossIndex: number) => {
   // recover TPs list as an array
   const tpLine = lines.findIndex((line) => line.includes("🎯 TP"));
   const tps = lines
@@ -102,7 +102,7 @@ const checkTrade = () => {
    */
 };
 
-const getProperties = (message, index) => {
+const getProperties = (message : string) => {
   //First we split the message received by lines :
   const lines = splitPerLine(message);
   const firstLine = lines[0];
@@ -126,4 +126,4 @@ const getProperties = (message, index) => {
   return { isLong, currency, entryPrices: entryPrices, stopLoss, tps };
 };
 
-module.exports = { getProperties };
+export{ getProperties };

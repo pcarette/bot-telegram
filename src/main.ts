@@ -1,26 +1,30 @@
-require("dotenv").config();
+import dotenv from "dotenv";
+dotenv.config();
 
-const TelegramBot = require("node-telegram-bot-api");
-const mongoose = require("mongoose");
-const { NewMessage } = require("telegram/events");
-const fs = require("fs");
-const { Api } = require("telegram");
+import TelegramBot from "node-telegram-bot-api";
+import mongoose from "mongoose";
+import { NewMessage } from "telegram/events";
+import fs from "fs";
+import { Api } from "telegram";
 
-const oracleService = require("./oracle/oracle.service");
-const oracleHelper = require("./oracle/oracle.helper");
+import * as oracleService from "./oracle/oracle.service";
+import * as oracleHelper from "./oracle/oracle.helper";
 
-const bybitService = require("./bybit.service");
+import * as bybitService from "./bybit.service";
+import { OrderParamsV5 } from "bybit-api";
 
 // Replace 'YOUR_TELEGRAM_BOT_TOKEN' with your actual Telegram bot token
-const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
+const bot = new TelegramBot(String(process.env.TELEGRAM_BOT_TOKEN), {
+  polling: true,
+});
 
 // MongoDB connection
 
 const userSchema = new mongoose.Schema({
   conversationId: Number,
   exchange: String,
-  apiKey: String,
-  apiSecret: String,
+  apiKey: { type: String, required: true },
+  apiSecret: { type: String, required: true },
   leverage: { type: String, default: "3" },
   walletProportion: { type: Number, default: 0.1 },
 });
@@ -32,12 +36,20 @@ bot.onText(/\/start/, (msg) => {
   bot.sendMessage(
     chatId,
     "Welcome! Which exchange do you want to store API keys for? (binance, bybit, kucoin)",
-    { reply_markup: { keyboard: [["Binance"], ["Bybit"], ["Kucoin"]] } }
+    {
+      reply_markup: {
+        keyboard: [
+          [{ text: "Binance" }],
+          [{ text: "Bybit" }],
+          [{ text: "Kucoin" }],
+        ],
+      },
+    }
   );
 
   // Button.inline("Binance")
   bot.once("message", (msg) => {
-    const exchange = msg.text.toLowerCase();
+    const exchange = msg.text?.toLowerCase() ?? "";
     if (!["binance", "bybit", "kucoin"].includes(exchange)) {
       bot.sendMessage(
         chatId,
@@ -82,10 +94,7 @@ bot.onText(/\/start/, (msg) => {
 
 (async () => {
   try {
-    const t = await mongoose.connect("mongodb://mongodb:27017/toto", {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    const t = await mongoose.connect("mongodb://mongodb:27017/toto");
     console.log("MongoDB connected");
   } catch (error) {
     console.log(error);
@@ -126,43 +135,43 @@ bot.onText(/\/start/, (msg) => {
         category: "linear",
         symbol: trade.currency + "USDT",
       });
-      const maxQty = currencyResponse.list[0].lotSizeFilter.maxOrderQty;
-      const minQty = currencyResponse.list[0].lotSizeFilter.minOrderQty;
-      const qtyStep = currencyResponse.list[0].lotSizeFilter.qtyStep;
+      const maxQty = Number(currencyResponse.list[0].lotSizeFilter.maxOrderQty);
+      const minQty = Number(currencyResponse.list[0].lotSizeFilter.minOrderQty);
+      const qtyStep = Number(currencyResponse.list[0].lotSizeFilter.qtyStep);
       console.log("currencyResponse: ", currencyResponse);
       console.log("spendableAmount: ", spendableAmount);
-      const orderParams = {
+      const orderParams: OrderParamsV5 = {
         category: "linear",
         symbol: trade.currency + "USDT",
         side: trade.isLong ? "Buy" : "Sell",
         orderType: "Limit",
         marketUnit: "quoteCoin",
-        // qty: String(
-        //   spendableAmount *
-        //     users[index].walletProportion *
-        //     users[index].leverage
-        // ),
+        qty: "",
         price: String(trade.entryPrices[0]),
         takeProfit: String(trade.tps[2]),
         stopLoss: String(trade.stopLoss),
       };
       //Define the correct qty :
       // Calculate the maximum possible quantity based on the spendable amount and entry price
-      const maxPossibleQty = ((spendableAmount * users[index].leverage * users[index].walletProportion) / trade.entryPrices[0]);
+      const maxPossibleQty =
+        (Number(spendableAmount) *
+          Number(users[index].leverage) *
+          users[index].walletProportion) /
+        trade.entryPrices[0];
 
       // Ensure the quantity is within the allowed range and conforms to the step size
-      let validQty = Math.min(maxPossibleQty, maxQty)
+      let validQty = Math.min(maxPossibleQty, maxQty);
       validQty = Math.max(validQty, minQty);
       validQty = Math.floor(validQty / qtyStep) * qtyStep; // Adjust to be a multiple of the step size
 
-      orderParams.qty = (validQty).toFixed(4); // Ensure the quantity has the correct precision
+      orderParams.qty = validQty.toFixed(4); // Ensure the quantity has the correct precision
 
       console.log("orderParams : ", orderParams);
       const orderResponse = await client.submitOrder(orderParams);
       console.log("orderResponse : ", orderResponse);
       if (!orderResponse.retCode) {
         bot.sendMessage(
-          users[index].conversationId,
+          Number(users[index].conversationId),
           `Order successfully placed for ${orderParams.symbol} : \nentry : ${orderParams.price}\nTP : ${orderParams.takeProfit} \nSL : ${orderParams.stopLoss}`
         );
       }
