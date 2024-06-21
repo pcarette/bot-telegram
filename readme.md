@@ -15,8 +15,8 @@ The Oracle is a Telegram client designed to monitor orders from a specific Teleg
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/yourusername/telegram-oracle-bot.git
-   cd telegram-oracle-bot
+   git clone https://github.com/pcarette/bot-telegram.git
+   cd bot-telegram
    ```
 
 2. **Install dependencies**:
