@@ -21,7 +21,7 @@ The Oracle is a Telegram client designed to monitor orders from a specific Teleg
 
 2. **Install dependencies**:
    ```bash
-   npm install
+   yarn
    ```
 
 3. **Set up environment variables**:
