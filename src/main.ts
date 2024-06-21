@@ -105,12 +105,18 @@ bot.onText(/\/start/, (msg) => {
   const ORACLE_CHANNEL = Number(process.env.ORACLE_CHANNEL);
 
   oracle.addEventHandler(async (event) => {
-    const trade = oracleHelper.getProperties(event.message.message);
-    console.log("trade : ", trade);
-    console.log("typeof trade : ", typeof trade);
-    const users = await User.find({}).lean();
+    let trade = null;
+    try {
+      trade = oracleHelper.getProperties(event.message.message);
+      
+    } catch (error) {
+      //TODO: Handle the bad parsing for non-trades messages
+      return;
+    }
 
-    console.log("users : ", users);
+    
+
+    const users = await User.find({}).lean();
 
     const clients = await Promise.all(
       users.map((user) => {
@@ -122,11 +128,14 @@ bot.onText(/\/start/, (msg) => {
     );
 
     clients.map(async (client, index) => {
+      //We get the user from our previous array :
+      const user = users[index];
+
       const setLeverageResponse = await client.setLeverage({
         category: "linear",
         symbol: trade.currency + "USDT",
-        buyLeverage: users[index].leverage,
-        sellLeverage: users[index].leverage,
+        buyLeverage: user.leverage,
+        sellLeverage: user.leverage,
       });
 
       console.log("setLeverageResponse : ", setLeverageResponse);
@@ -155,8 +164,8 @@ bot.onText(/\/start/, (msg) => {
       // Calculate the maximum possible quantity based on the spendable amount and entry price
       const maxPossibleQty =
         (Number(spendableAmount) *
-          Number(users[index].leverage) *
-          users[index].walletProportion) /
+          Number(user.leverage) *
+          user.walletProportion) /
         trade.entryPrices[0];
 
       // Ensure the quantity is within the allowed range and conforms to the step size
@@ -166,13 +175,17 @@ bot.onText(/\/start/, (msg) => {
 
       orderParams.qty = validQty.toFixed(4); // Ensure the quantity has the correct precision
 
-      console.log("orderParams : ", orderParams);
       const orderResponse = await client.submitOrder(orderParams);
-      console.log("orderResponse : ", orderResponse);
+
       if (!orderResponse.retCode) {
         bot.sendMessage(
-          Number(users[index].conversationId),
+          Number(user.conversationId),
           `Order successfully placed for ${orderParams.symbol} : \nentry : ${orderParams.price}\nTP : ${orderParams.takeProfit} \nSL : ${orderParams.stopLoss}`
+        );
+      } else {
+        bot.sendMessage(
+          Number(user.conversationId),
+          `Failed to place order for ${orderParams.symbol} : \nentry : ${orderParams.price}\nTP : ${orderParams.takeProfit} \nSL : ${orderParams.stopLoss}`
         );
       }
     });
