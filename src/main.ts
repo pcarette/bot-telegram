@@ -4,13 +4,14 @@ dotenv.config();
 import TelegramBot from "node-telegram-bot-api";
 import mongoose from "mongoose";
 import { NewMessage } from "telegram/events";
-import fs from "fs";
-import { Api } from "telegram";
+
+import { User } from "./model/user.model";
+
 
 import * as oracleService from "./oracle/oracle.service";
 import * as oracleHelper from "./oracle/oracle.helper";
 
-import * as bybitService from "./bybit.service";
+import * as bybitService from "./exchanges/bybit/services/bybit.service";
 import { OrderParamsV5 } from "bybit-api";
 
 // Replace 'YOUR_TELEGRAM_BOT_TOKEN' with your actual Telegram bot token
@@ -20,16 +21,6 @@ const bot = new TelegramBot(String(process.env.TELEGRAM_BOT_TOKEN), {
 
 // MongoDB connection
 
-const userSchema = new mongoose.Schema({
-  conversationId: Number,
-  exchange: String,
-  apiKey: { type: String, required: true },
-  apiSecret: { type: String, required: true },
-  leverage: { type: String, default: "3" },
-  walletProportion: { type: Number, default: 0.1 },
-});
-
-const User = mongoose.model("User", userSchema);
 
 bot.onText(/\/start/, (msg) => {
   const chatId = msg.chat.id;
@@ -67,12 +58,7 @@ bot.onText(/\/start/, (msg) => {
         const apiSecret = msg.text;
 
         // Create a new user and save to MongoDB
-        const newUser = new User({
-          conversationId: chatId,
-          exchange: exchange,
-          apiKey: apiKey,
-          apiSecret: apiSecret,
-        });
+        const newUser = new User();
 
         const savedUser = await newUser.save();
 
