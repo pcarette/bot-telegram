@@ -5,6 +5,8 @@
       "module": "commonjs",
       "target": "es6",
       "strict": true,
+      // "baseUrl": ".",
+      // "paths": {"input" : ["./types/input"]},
       "esModuleInterop": true,
       "skipLibCheck": true
     },

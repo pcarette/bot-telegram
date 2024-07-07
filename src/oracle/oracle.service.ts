@@ -3,7 +3,7 @@ dotenv.config();
 
 import { TelegramClient } from 'telegram';
 import { StringSession } from 'telegram/sessions';
-import * as input from 'input';
+import * as input from "input"
 
 // Type assertions for environment variables
 const apiId = Number(process.env.DEV_API_ID) || Number(process.env.API_ID);
