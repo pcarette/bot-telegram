@@ -15,7 +15,6 @@ const getAccountInfo = async () => {
   const client = new RestClientV5({
     key: API_ID,
     secret: SECRET,
-    testnet: true,
   });
   return client.getAccountInfo();
 };
@@ -24,7 +23,6 @@ const getClient = async ({ apiId, apiSecret }: ClientParams): Promise<RestClient
   const client = new RestClientV5({
     key: apiId || API_ID,
     secret: apiSecret || SECRET,
-    testnet: true,
   });
   return client
 };;
